@@ -1,0 +1,33 @@
+# Superpowers
+
+- **Source URL**: https://github.com/obra/superpowers
+- **License**: MIT
+- **Import Date**: 2026-03-21
+- **Imported Skills**:
+  - `brainstorming`: 아이디어를 구조화된 디자인과 스펙으로 발전시키는 협업 프로세스
+  - `test-driven-development`: 테스트 우선 개발 (Red-Green-Refactor) 프로세스
+  - `systematic-debugging`: 근본 원인 분석 우선의 체계적 디버깅 프로세스
+  - `writing-plans`: 구현 계획서 작성 — 2~5분 단위의 세분화된 태스크
+  - `executing-plans`: 작성된 구현 계획 실행 및 리뷰 체크포인트
+  - `dispatching-parallel-agents`: 독립적 문제를 병렬 에이전트로 동시 해결
+  - `finishing-a-development-branch`: 개발 브랜치 완료 — 머지/PR/폐기 옵션 제시
+  - `receiving-code-review`: 코드 리뷰 피드백 수신 — 기술적 검증 우선
+  - `requesting-code-review`: 코드 리뷰 요청 — 리뷰어 서브에이전트 디스패치
+  - `subagent-driven-development`: 서브에이전트 기반 개발 — 태스크별 구현+2단계 리뷰
+  - `using-git-worktrees`: Git worktree로 격리된 작업 공간 생성
+  - `using-superpowers`: 스킬 프레임워크 사용법 — 스킬 발견 및 호출 가이드
+  - `verification-before-completion`: 완료 선언 전 검증 필수 — 증거 기반 상태 보고
+  - `writing-skills`: 새 스킬 작성 — TDD 기반 프로세스 문서화
+- **Modifications**: 원본 그대로 사용. 코드/바이너리 파일만 제외
+- **Excluded Content**:
+  - `brainstorming/scripts/` — 서버 코드, HTML 템플릿 (코드 파일)
+  - `systematic-debugging/find-polluter.sh` — 셸 스크립트
+  - `systematic-debugging/condition-based-waiting-example.ts` — TypeScript 예제
+  - `systematic-debugging/CREATION-LOG.md` — 스킬 개발 로그 (메타 정보)
+  - `systematic-debugging/test-academic.md`, `test-pressure-*.md` — 스킬 테스트 시나리오
+  - `writing-skills/render-graphs.js` — JavaScript 유틸리티
+  - `writing-skills/graphviz-conventions.dot` — Graphviz 설정
+  - superpowers 플러그인 설정(.claude-plugin/, .cursor-plugin/ 등)
+  - 훅 시스템(hooks/) — 프레임워크 인프라
+  - 에이전트 정의(agents/) — 스킬이 아닌 에이전트 설정
+  - 커맨드 정의(commands/) — deprecated된 레거시 커맨드
