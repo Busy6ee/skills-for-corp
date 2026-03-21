@@ -1,0 +1,22 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# Editors
+*.swp
+*.swo
+*~
+.idea/
+.vscode/
+
+# Secrets
+.env
+.env.*
+*.key
+*.pem
+credentials*
+
+# Runtime artifacts
+node_modules/
+__pycache__/
+*.pyc
