@@ -3,38 +3,38 @@ name: chisel-interface
 description: Use when connecting Chisel modules together, using DecoupledIO (ready/valid handshaking), Flipped ports, bulk connections (<>), or designing bus interfaces and inter-module communication protocols.
 ---
 
-# Chisel Interface — 모듈 연결 및 프로토콜
+# Chisel Interface — Module Connection and Protocols
 
-## DecoupledIO — Ready/Valid 핸드셰이킹
+## DecoupledIO — Ready/Valid Handshaking
 
-### 구조
+### Structure
 
 ```scala
-// chisel3.util.DecoupledIO 내부 구조 (참고용)
+// chisel3.util.DecoupledIO internal structure (reference)
 class DecoupledIO[T <: Data](gen: T) extends Bundle {
-  val ready = Input(Bool())    // 소비자 → 생산자
-  val valid = Output(Bool())   // 생산자 → 소비자
-  val bits  = Output(gen)      // 데이터
+  val ready = Input(Bool())    // Consumer → Producer
+  val valid = Output(Bool())   // Producer → Consumer
+  val bits  = Output(gen)      // Data
 }
 ```
 
-### 생산자 측 (Output)
+### Producer Side (Output)
 
 ```scala
 val io = IO(new Bundle {
-  val out = new DecoupledIO(UInt(8.W))  // 기본: valid/bits = Output, ready = Input
+  val out = new DecoupledIO(UInt(8.W))  // Default: valid/bits = Output, ready = Input
 })
 ```
 
-### 소비자 측 (Input) — Flipped
+### Consumer Side (Input) — Flipped
 
 ```scala
 val io = IO(new Bundle {
-  val in = Flipped(new DecoupledIO(UInt(8.W)))  // 방향 반전: valid/bits = Input, ready = Output
+  val in = Flipped(new DecoupledIO(UInt(8.W)))  // Direction reversed: valid/bits = Input, ready = Output
 })
 ```
 
-### Ready/Valid Buffer 예제
+### Ready/Valid Buffer Example
 
 ```scala
 class ReadyValidBuffer extends Module {
@@ -61,41 +61,41 @@ class ReadyValidBuffer extends Module {
 }
 ```
 
-### fire 신호
+### fire Signal
 
 ```scala
-// 데이터 전송 성공 조건
+// Condition for successful data transfer
 val transferred = io.out.fire  // === io.out.valid && io.out.ready
 ```
 
-## Flipped — 방향 반전
+## Flipped — Direction Reversal
 
 ```scala
-// 기본 Bundle
+// Base Bundle
 class Channel extends Bundle {
   val data  = Output(UInt(32.W))
   val valid = Output(Bool())
   val ready = Input(Bool())
 }
 
-// 생산자 IO
+// Producer IO
 val producer = IO(new Channel())       // data/valid = Output, ready = Input
 
-// 소비자 IO
+// Consumer IO
 val consumer = IO(Flipped(new Channel()))  // data/valid = Input, ready = Output
 ```
 
 ## Bulk Connection `<>`
 
-같은 이름의 필드를 자동으로 연결:
+Automatically connects fields with matching names:
 
 ```scala
-// 모듈 간 연결
+// Inter-module connection
 val producer = Module(new Producer())
 val consumer = Module(new Consumer())
-producer.io.out <> consumer.io.in  // 이름이 같은 필드 자동 매칭
+producer.io.out <> consumer.io.in  // Automatically matches fields with the same name
 
-// FIFO 체이닝
+// FIFO chaining
 val buffers = Array.fill(depth) { Module(new Buffer()) }
 for (i <- 0 until depth - 1) {
   buffers(i + 1).io.enq <> buffers(i).io.deq
@@ -104,7 +104,7 @@ io.enq <> buffers(0).io.enq
 io.deq <> buffers(depth - 1).io.deq
 ```
 
-## 파라메트릭 IO Bundle
+## Parameterized IO Bundle
 
 ```scala
 class FifoIO[T <: Data](private val gen: T) extends Bundle {
@@ -112,16 +112,16 @@ class FifoIO[T <: Data](private val gen: T) extends Bundle {
   val deq = new DecoupledIO(gen)
 }
 
-// 사용
+// Usage
 class MyFifo[T <: Data](gen: T, depth: Int) extends Module {
   val io = IO(new FifoIO(gen))
   // ...
 }
 ```
 
-## 커스텀 프로토콜 Bundle
+## Custom Protocol Bundle
 
-### 메모리 매핑 인터페이스
+### Memory-Mapped Interface
 
 ```scala
 class MemoryMappedIO extends Bundle {
@@ -133,9 +133,9 @@ class MemoryMappedIO extends Bundle {
 }
 ```
 
-## 모듈 계층 구조
+## Module Hierarchy
 
-### 서브모듈 인스턴스화
+### Submodule Instantiation
 
 ```scala
 class Top extends Module {
@@ -144,45 +144,45 @@ class Top extends Module {
     val out = Output(UInt(8.W))
   })
 
-  // 서브모듈 생성
+  // Create submodules
   val stage1 = Module(new Stage1())
   val stage2 = Module(new Stage2())
 
-  // 수동 연결
+  // Manual connection
   stage1.io.in := io.in
   stage2.io.in := stage1.io.out
   io.out := stage2.io.out
 }
 ```
 
-### Bulk connection으로 연결
+### Connection via Bulk Connection
 
 ```scala
 class Pipeline extends Module {
   val fetch  = Module(new Fetch())
   val decode = Module(new Decode())
 
-  fetch.io <> decode.io  // 이름 매칭 자동 연결
+  fetch.io <> decode.io  // Automatic connection by name matching
 }
 ```
 
-## 연결 연산자 비교
+## Connection Operator Comparison
 
-| 연산자 | 방향 | 동작 |
-|--------|------|------|
-| `:=` | 단방향 | LHS의 모든 필드에 RHS 할당 (마지막 연결 우선) |
-| `<>` | 양방향 | 이름 매칭으로 자동 연결 (Input↔Output) |
+| Operator | Direction | Behavior |
+|----------|-----------|----------|
+| `:=` | Unidirectional | Assigns RHS to all fields of LHS (last connection wins) |
+| `<>` | Bidirectional | Automatic connection by name matching (Input↔Output) |
 
 ## Gotchas
 
-| 함정 | 설명 |
-|------|------|
-| **`<>` 이름 불일치** | 매칭되지 않는 필드는 **무시** (에러 아님) — 의도치 않은 미연결 주의 |
-| **`Flipped()` 재귀** | Bundle 내 모든 방향을 재귀적으로 반전 — 혼합 방향 Bundle에서 주의 |
-| **`ready` 미구동** | `DecoupledIO` 소비자는 반드시 `ready` 신호를 구동해야 함 (미구동 = 합성 에러) |
-| **`fire` 사용 권장** | `io.out.valid && io.out.ready` 대신 `io.out.fire` 사용 |
-| **`Module(new X())` 괄호** | `new X()` 주위 괄호 필수 — `Module(new X)` 도 동작하지만 인자 있을 때 혼동 |
-| **`:=` 마지막 우선** | 같은 Wire에 여러 `:=` 시 마지막만 유효 |
-| **`<>`는 마지막 우선 아님** | `<>`는 양방향 — 같은 포트에 여러 `<>` 시 에러 |
-| **DecoupledIO 기본 방향** | `new DecoupledIO(gen)` → valid/bits=Output, ready=Input. 입력 측은 반드시 `Flipped()` |
-| **Bundle 필드 방향** | IO에서 직접 `Input`/`Output` 쓰는 것과 `Flipped` 조합 주의 — 의도한 방향 확인 |
+| Pitfall | Description |
+|---------|-------------|
+| **`<>` name mismatch** | Unmatched fields are **silently ignored** (not an error) — watch for unintended unconnected signals |
+| **`Flipped()` is recursive** | Recursively reverses all directions within a Bundle — use caution with mixed-direction Bundles |
+| **Undriven `ready`** | `DecoupledIO` consumers must always drive the `ready` signal (undriven = synthesis error) |
+| **Prefer `fire`** | Use `io.out.fire` instead of `io.out.valid && io.out.ready` |
+| **`Module(new X())` parentheses** | Parentheses around `new X()` are required — `Module(new X)` works but causes confusion when arguments are needed |
+| **`:=` last connection wins** | When multiple `:=` target the same Wire, only the last one takes effect |
+| **`<>` does NOT have last-connection semantics** | `<>` is bidirectional — multiple `<>` on the same port causes an error |
+| **DecoupledIO default direction** | `new DecoupledIO(gen)` → valid/bits=Output, ready=Input. The input side must use `Flipped()` |
+| **Bundle field directions** | Be careful when combining explicit `Input`/`Output` in IO with `Flipped` — verify the intended directions |

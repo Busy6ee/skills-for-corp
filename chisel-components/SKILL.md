@@ -3,11 +3,11 @@ name: chisel-components
 description: Use when implementing standard digital building blocks in Chisel — FIFOs, UARTs, counters, adders, arbiters, shift registers, encoders/decoders, or input processing (debounce, synchronizer, edge detection). Use as a pattern library for common hardware components.
 ---
 
-# Chisel Components — 표준 빌딩블록 라이브러리
+# Chisel Components — Standard Building Block Library
 
-## FIFO 설계 패턴
+## FIFO Design Patterns
 
-### 추상 베이스 + 파라메트릭 IO
+### Abstract Base + Parametric IO
 
 ```scala
 class FifoIO[T <: Data](private val gen: T) extends Bundle {
@@ -21,7 +21,7 @@ abstract class Fifo[T <: Data](gen: T, val depth: Int) extends Module {
 }
 ```
 
-### BubbleFifo — 가장 단순
+### BubbleFifo — Simplest Implementation
 
 ```scala
 class BubbleFifo[T <: Data](gen: T, depth: Int) extends Fifo(gen, depth) {
@@ -52,11 +52,11 @@ class BubbleFifo[T <: Data](gen: T, depth: Int) extends Fifo(gen, depth) {
 }
 ```
 
-### RegFifo — 포인터 기반 순환 버퍼
+### RegFifo — Pointer-Based Circular Buffer
 
 ```scala
-// Reg(Vec)로 구현, read/write 포인터 사용
-// counter 헬퍼 함수:
+// Implemented with Reg(Vec), uses read/write pointers
+// Counter helper function:
 def counter(depth: Int, incr: Bool): (UInt, UInt) = {
   val cntReg = RegInit(0.U(log2Ceil(depth).W))
   val nextVal = Mux(cntReg === (depth-1).U, 0.U, cntReg + 1.U)
@@ -65,23 +65,23 @@ def counter(depth: Int, incr: Bool): (UInt, UInt) = {
 }
 ```
 
-### MemFifo — SyncReadMem 기반 (대용량)
+### MemFifo — SyncReadMem-Based (Large Capacity)
 
-SyncReadMem + WriteFirst로 대용량 FIFO 구현. 1사이클 읽기 레이턴시 처리를 위해 출력 레지스터 사용.
+Uses SyncReadMem + WriteFirst to implement large-capacity FIFOs. An output register is used to handle the 1-cycle read latency.
 
-### FIFO 선택 가이드
+### FIFO Selection Guide
 
-| FIFO 타입 | 처리량 | 리소스 | 적합한 용도 |
-|-----------|--------|--------|------------|
-| BubbleFifo | 1/2N cycles | FF | 소형, 간단 |
-| DoubleBufferFifo | 1/cycle | FF | 중형, 파이프라인 |
-| RegFifo | 1/cycle | FF | 중형, 범용 |
-| MemFifo | 1/cycle | BRAM | 대형 |
-| CombFifo | 1/cycle | BRAM+FF | 대형, 최적 |
+| FIFO Type | Throughput | Resource | Best For |
+|-----------|------------|----------|----------|
+| BubbleFifo | 1/2N cycles | FF | Small, simple |
+| DoubleBufferFifo | 1/cycle | FF | Medium, pipelined |
+| RegFifo | 1/cycle | FF | Medium, general purpose |
+| MemFifo | 1/cycle | BRAM | Large |
+| CombFifo | 1/cycle | BRAM+FF | Large, optimal |
 
-## 카운터 패턴
+## Counter Patterns
 
-### When 기반 카운터
+### When-Based Counter
 
 ```scala
 val cntReg = RegInit(0.U(8.W))
@@ -91,14 +91,14 @@ when(cntReg === (n-1).U) {
 }
 ```
 
-### Mux 기반 카운터 (1줄)
+### Mux-Based Counter (One-Liner)
 
 ```scala
 val cntReg = RegInit(0.U(8.W))
 cntReg := Mux(cntReg === (n-1).U, 0.U, cntReg + 1.U)
 ```
 
-### 다운 카운터
+### Down Counter
 
 ```scala
 val cntReg = RegInit((n-1).U(8.W))
@@ -109,7 +109,7 @@ when(cntReg === 0.U) {
 val tick = cntReg === 0.U
 ```
 
-### 함수 기반 카운터 생성기
+### Function-Based Counter Generator
 
 ```scala
 def genCounter(n: Int) = {
@@ -121,7 +121,7 @@ val count10 = genCounter(10)
 val count99 = genCounter(99)
 ```
 
-### Tick 생성기 (클럭 분주)
+### Tick Generator (Clock Divider)
 
 ```scala
 val tickReg = RegInit(0.U(32.W))
@@ -129,22 +129,22 @@ val tick = tickReg === (N-1).U
 tickReg := tickReg + 1.U
 when(tick) { tickReg := 0.U }
 
-// tick 기반 저주파 카운터
+// Tick-based low-frequency counter
 val lowFreqCnt = RegInit(0.U(4.W))
 when(tick) {
   lowFreqCnt := lowFreqCnt + 1.U
 }
 ```
 
-## 입력 처리 체인
+## Input Processing Chain
 
-### 1. 동기화 (메타스태빌리티 방지)
+### 1. Synchronization (Metastability Prevention)
 
 ```scala
-val btnSync = RegNext(RegNext(btn))  // 2단 FF 동기화
+val btnSync = RegNext(RegNext(btn))  // 2-stage FF synchronizer
 ```
 
-### 2. 디바운스
+### 2. Debounce
 
 ```scala
 val btnDebReg = RegInit(false.B)
@@ -153,11 +153,11 @@ val tick = cntReg === (fac-1).U
 cntReg := cntReg + 1.U
 when(tick) {
   cntReg := 0.U
-  btnDebReg := btnSync  // tick 주기마다 샘플링
+  btnDebReg := btnSync  // Sample at each tick interval
 }
 ```
 
-### 3. 다수결 필터링
+### 3. Majority Voting Filter
 
 ```scala
 val shiftReg = RegInit(0.U(3.W))
@@ -169,13 +169,13 @@ val btnClean = (shiftReg(2) & shiftReg(1)) |
                (shiftReg(1) & shiftReg(0))
 ```
 
-### 4. 엣지 검출
+### 4. Edge Detection
 
 ```scala
 val risingEdge = btnClean & !RegNext(btnClean)
 ```
 
-### 함수형 입력 처리 (재사용)
+### Functional Input Processing (Reusable)
 
 ```scala
 def sync(v: Bool) = RegNext(RegNext(v))
@@ -194,7 +194,7 @@ def filter(v: Bool, t: Bool) = {
   (reg(2) & reg(1)) | (reg(2) & reg(0)) | (reg(1) & reg(0))
 }
 
-// 조합:
+// Composition:
 val btnSync = sync(io.btnU)
 val tick = tickGen(100000000/100)
 val btnDeb = RegInit(false.B)
@@ -203,13 +203,13 @@ val btnClean = filter(btnDeb, tick)
 val pressed = rising(btnClean)
 ```
 
-## 시프트 레지스터
+## Shift Registers
 
 ### Serial-In / Parallel-Out
 
 ```scala
 val shiftReg = RegInit(0.U(4.W))
-shiftReg := shiftReg(2, 0) ## io.din  // 왼쪽 시프트, 새 비트 LSB
+shiftReg := shiftReg(2, 0) ## io.din  // Left shift, new bit at LSB
 val parallelOut = shiftReg
 ```
 
@@ -220,23 +220,23 @@ val shiftReg = Reg(UInt(4.W))
 when(io.load) {
   shiftReg := io.parallelIn
 } .otherwise {
-  shiftReg := 0.U ## shiftReg(3, 1)  // 오른쪽 시프트
+  shiftReg := 0.U ## shiftReg(3, 1)  // Right shift
 }
 io.dout := shiftReg(0)
 ```
 
-## 인코더 / 디코더
+## Encoders / Decoders
 
-### 디코더 (1-of-N)
+### Decoder (1-of-N)
 
 ```scala
-val decoded = 1.U << io.sel  // sel 비트 위치만 1
+val decoded = 1.U << io.sel  // Only the bit at position sel is 1
 ```
 
-### 인코더 (Priority)
+### Encoder (Priority)
 
 ```scala
-// switch 기반
+// Switch-based
 val encoded = WireDefault(0.U)
 switch(io.input) {
   is("b0001".U) { encoded := 0.U }
@@ -248,12 +248,12 @@ switch(io.input) {
 
 ## Gotchas
 
-| 함정 | 설명 |
-|------|------|
-| **BubbleFifo 처리량** | 버퍼 단계당 2사이클/원소 — 파이프라인 처리량이 아님 |
-| **동기화 2FF** | `RegNext(RegNext(btn))` 필수 — 1FF는 메타스태빌리티 미해결 |
-| **디바운스 샘플링 주기** | 시스템 클럭을 적절히 분주. 예: 100MHz/100 = 1MHz |
-| **MemFifo WriteFirst** | SyncReadMem에 `SyncReadMem.WriteFirst` 필수 — 없으면 R/W 해저드 |
-| **다운카운터 tick 위치** | `RegInit(N)` → 0까지 카운트 → tick은 0에서 발생 |
-| **디코더 폭** | `1.U << sel` 결과 폭이 sel 폭에 의존 — 명시적 폭 절단 필요할 수 있음 |
-| **FIFO depth** | BubbleFifo는 depth = 버퍼 수. RegFifo/MemFifo는 depth = 엔트리 수 |
+| Pitfall | Description |
+|---------|-------------|
+| **BubbleFifo throughput** | 2 cycles/element per buffer stage — not pipeline throughput |
+| **2FF synchronizer** | `RegNext(RegNext(btn))` is required — a single FF does not resolve metastability |
+| **Debounce sampling period** | Divide the system clock appropriately. E.g., 100 MHz / 100 = 1 MHz |
+| **MemFifo WriteFirst** | `SyncReadMem.WriteFirst` is required for SyncReadMem — otherwise R/W hazard occurs |
+| **Down counter tick position** | `RegInit(N)` counts down to 0 — tick fires at 0 |
+| **Decoder width** | Result width of `1.U << sel` depends on sel width — explicit width truncation may be needed |
+| **FIFO depth** | BubbleFifo depth = number of buffers. RegFifo/MemFifo depth = number of entries |

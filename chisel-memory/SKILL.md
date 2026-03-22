@@ -3,9 +3,9 @@ name: chisel-memory
 description: Use when implementing SRAM, register files, or any memory structure in Chisel. Use when dealing with SyncReadMem, read-during-write behavior, memory forwarding, dual-port memory, or multi-port register file access patterns.
 ---
 
-# Chisel Memory — 메모리 및 레지스터 파일
+# Chisel Memory — Memory and Register Files
 
-## SyncReadMem — 기본 SRAM
+## SyncReadMem — Basic SRAM
 
 ```scala
 class Memory extends Module {
@@ -27,9 +27,9 @@ class Memory extends Module {
 }
 ```
 
-## Read-During-Write 포워딩
+## Read-During-Write Forwarding
 
-동일 주소에 동시 읽기/쓰기 시 최신 데이터를 반환하는 패턴:
+Pattern for returning the latest data when reading and writing the same address simultaneously:
 
 ```scala
 class ForwardingMemory extends Module {
@@ -43,7 +43,7 @@ class ForwardingMemory extends Module {
 
   val mem = SyncReadMem(1024, UInt(8.W))
 
-  // 포워딩 조건과 데이터를 1사이클 지연
+  // Delay forwarding condition and data by 1 cycle
   val wrDataReg = RegNext(io.wrData)
   val doForwardReg = RegNext(io.wrAddr === io.rdAddr && io.wrEna)
 
@@ -53,19 +53,19 @@ class ForwardingMemory extends Module {
     mem.write(io.wrAddr, io.wrData)
   }
 
-  // 포워딩 or 메모리 데이터 선택
+  // Select forwarded or memory data
   io.rdData := Mux(doForwardReg, wrDataReg, memData)
 }
 ```
 
-## WriteFirst 모드
+## WriteFirst Mode
 
 ```scala
-// SyncReadMem에 WriteFirst 명시
+// Specify WriteFirst on SyncReadMem
 val mem = SyncReadMem(1024, UInt(8.W), SyncReadMem.WriteFirst)
 ```
 
-WriteFirst: 동일 주소 동시 접근 시 쓰기 데이터가 읽기에 반영. 수동 포워딩 불필요.
+WriteFirst: when the same address is accessed simultaneously, write data is reflected in the read. No manual forwarding needed.
 
 ## True Dual-Port Memory
 
@@ -98,19 +98,19 @@ class TrueDualPortMemory extends Module {
 }
 ```
 
-## Register File — Reg(Vec) 기반
+## Register File — Reg(Vec) Based
 
 ```scala
-// 기본 레지스터 파일 (리셋 없음)
+// Basic register file (no reset)
 val registerFile = Reg(Vec(32, UInt(32.W)))
 registerFile(wrIdx) := wrData
 val rdData = registerFile(rdIdx)
 
-// 리셋 가능 레지스터 파일
+// Resettable register file
 val resetRegFile = RegInit(VecInit(Seq.fill(32)(0.U(32.W))))
 ```
 
-### Optional 디버그 포트
+### Optional Debug Port
 
 ```scala
 class RegisterFile(debug: Boolean = false) extends Module {
@@ -120,7 +120,7 @@ class RegisterFile(debug: Boolean = false) extends Module {
     val wrAddr = Input(UInt(5.W))
     val wrData = Input(UInt(32.W))
     val wrEna  = Input(Bool())
-    // 조건부 포트
+    // Conditional port
     val debugPort = if (debug) Some(Output(Vec(32, UInt(32.W)))) else None
   })
 
@@ -137,7 +137,7 @@ class RegisterFile(debug: Boolean = false) extends Module {
 }
 ```
 
-## 파일 초기화
+## File Initialization
 
 ```scala
 import chisel3.util.experimental.loadMemoryFromFileInline
@@ -150,7 +150,7 @@ loadMemoryFromFileInline(
 )
 ```
 
-### Scala에서 hex 파일 동적 생성
+### Dynamically Generating Hex Files in Scala
 
 ```scala
 val hello = "Hello, World!"
@@ -163,12 +163,12 @@ val mem = SyncReadMem(1024, UInt(8.W))
 loadMemoryFromFileInline(mem, "hello.hex", firrtl.annotations.MemoryLoadFileType.Hex)
 ```
 
-## 멀티클럭 메모리
+## Multi-Clock Memory
 
 ```scala
 class MultiClockMemory extends Module {
   val io = IO(new Bundle {
-    val clkB    = Input(Bool())  // 외부 클럭을 Bool로 입력
+    val clkB    = Input(Bool())  // External clock as Bool input
     val rdAddr  = Input(UInt(10.W))
     val rdData  = Output(UInt(8.W))
     val wrAddr  = Input(UInt(10.W))
@@ -178,10 +178,10 @@ class MultiClockMemory extends Module {
 
   val mem = SyncReadMem(1024, UInt(8.W))
 
-  // 기본 클럭 도메인에서 읽기
+  // Read in the default clock domain
   io.rdData := mem.read(io.rdAddr)
 
-  // 다른 클럭 도메인에서 쓰기
+  // Write in a different clock domain
   withClock(io.clkB.asClock) {
     when(io.wrEna) {
       mem.write(io.wrAddr, io.wrData)
@@ -190,25 +190,25 @@ class MultiClockMemory extends Module {
 }
 ```
 
-## SyncReadMem vs Reg(Vec) 선택 가이드
+## SyncReadMem vs Reg(Vec) Selection Guide
 
 | | SyncReadMem | Reg(Vec) |
 |--|------------|----------|
-| **합성 결과** | BRAM/Block RAM | FF/분산 RAM |
-| **읽기 레이턴시** | 1사이클 (동기 읽기) | 0사이클 (조합 읽기) |
-| **적합한 크기** | 큰 메모리 (>64 entries) | 작은 메모리 (<64 entries) |
-| **포트 수** | 제한적 (FPGA 리소스 의존) | 자유로움 (FF 기반) |
-| **리셋** | 지원 안함 (file init만) | `RegInit(VecInit(...))` |
-| **read-during-write** | 명시적 처리 필요 | 자동 (조합 읽기) |
+| **Synthesis result** | BRAM/Block RAM | FF/Distributed RAM |
+| **Read latency** | 1 cycle (synchronous read) | 0 cycles (combinational read) |
+| **Suitable size** | Large memory (>64 entries) | Small memory (<64 entries) |
+| **Number of ports** | Limited (depends on FPGA resources) | Flexible (FF-based) |
+| **Reset** | Not supported (file init only) | `RegInit(VecInit(...))` |
+| **read-during-write** | Requires explicit handling | Automatic (combinational read) |
 
 ## Gotchas
 
-| 함정 | 설명 |
+| Pitfall | Description |
 |------|------|
-| **SyncReadMem 1사이클 레이턴시** | `mem.read(addr)` 결과는 **다음** 클럭 엣지에서 유효. 같은 사이클에서 읽기 불가 |
-| **기본 read-during-write 미정의** | 동일 주소 동시 R/W 시 결과 미정의. 반드시 포워딩 구현 또는 `WriteFirst` 사용 |
-| **듀얼포트 합성 제한** | `SyncReadMem` 듀얼포트가 모든 FPGA에서 Block RAM으로 합성되지 않음 (Cyclone V에서 FF로 합성된 사례) |
-| **`loadMemoryFromFileInline` 백엔드** | FIRRTL annotation 기반 — 모든 합성 백엔드에서 지원되지 않을 수 있음 |
-| **RegFile 읽기는 조합** | `Reg(Vec)` 읽기는 같은 사이클 (조합), `SyncReadMem`은 다음 사이클 — 파이프라인 설계 시 차이 고려 |
-| **메모리 크기 → 리소스** | 32 entry 이하: `Reg(Vec)` 권장. 그 이상: `SyncReadMem`으로 BRAM 활용 |
-| **`.asClock` 안전성** | `Bool.asClock`는 CDC(Clock Domain Crossing) 처리 없음 — 동기화 로직 별도 필요 |
+| **SyncReadMem 1-cycle latency** | `mem.read(addr)` result is valid on the **next** clock edge. Cannot read in the same cycle |
+| **Default read-during-write is undefined** | Simultaneous R/W to the same address yields undefined results. Must implement forwarding or use `WriteFirst` |
+| **Dual-port synthesis limitations** | `SyncReadMem` dual-port does not always synthesize to Block RAM on all FPGAs (e.g., synthesized to FFs on Cyclone V) |
+| **`loadMemoryFromFileInline` backend** | Based on FIRRTL annotations — may not be supported by all synthesis backends |
+| **RegFile read is combinational** | `Reg(Vec)` read is same-cycle (combinational), `SyncReadMem` is next-cycle — consider this difference in pipeline design |
+| **Memory size and resources** | 32 entries or fewer: `Reg(Vec)` recommended. Larger: use `SyncReadMem` to leverage BRAM |
+| **`.asClock` safety** | `Bool.asClock` does not handle CDC (Clock Domain Crossing) — separate synchronization logic is required |

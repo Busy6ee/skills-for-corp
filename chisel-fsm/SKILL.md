@@ -3,9 +3,9 @@ name: chisel-fsm
 description: Use when designing finite state machines in Chisel, including Mealy/Moore machines, multi-state controllers, or FSMs communicating with datapaths (timers, counters). Use when the design requires state machine, FSM, or sequential control logic.
 ---
 
-# Chisel FSM — 유한 상태 머신 설계
+# Chisel FSM — Finite State Machine Design
 
-## 기본 FSM 패턴
+## Basic FSM Pattern
 
 ```scala
 import chisel3._
@@ -18,16 +18,16 @@ class SimpleFsm extends Module {
     val ringBell = Output(Bool())
   })
 
-  // 1. 상태 정의 (ChiselEnum)
+  // 1. State definition (ChiselEnum)
   object State extends ChiselEnum {
     val green, orange, red = Value
   }
   import State._
 
-  // 2. 상태 레지스터 (초기 상태 지정)
+  // 2. State register (with initial state)
   val stateReg = RegInit(green)
 
-  // 3. 다음 상태 로직
+  // 3. Next-state logic
   switch (stateReg) {
     is (green) {
       when(io.badEvent) {
@@ -48,16 +48,16 @@ class SimpleFsm extends Module {
     }
   }
 
-  // 4. 출력 로직 (Moore: 상태에만 의존)
+  // 4. Output logic (Moore: depends only on state)
   io.ringBell := stateReg === red
 }
 ```
 
 ## Moore vs Mealy
 
-### Moore Machine — 출력이 상태에만 의존
+### Moore Machine — Output depends only on state
 ```scala
-// 출력 로직이 switch 블록 밖에 있음
+// Output logic is outside the switch block
 switch (stateReg) {
   is (zero) {
     when(io.din) { stateReg := one }
@@ -66,20 +66,20 @@ switch (stateReg) {
     when(!io.din) { stateReg := zero }
   }
 }
-// Moore 출력: 상태만으로 결정
+// Moore output: determined by state alone
 io.risingEdge := stateReg === one
 ```
 
-### Mealy Machine — 출력이 상태+입력에 의존
+### Mealy Machine — Output depends on state + input
 ```scala
-// 기본 출력값 설정 (중요!)
+// Set default output value (important!)
 io.risingEdge := false.B
 
 switch (stateReg) {
   is (zero) {
     when(io.din) {
       stateReg := one
-      io.risingEdge := true.B  // Mealy: 전이 시 즉시 출력
+      io.risingEdge := true.B  // Mealy: output immediately on transition
     }
   }
   is (one) {
@@ -90,17 +90,17 @@ switch (stateReg) {
 }
 ```
 
-**차이점:**
+**Key differences:**
 | | Moore | Mealy |
 |--|-------|-------|
-| 출력 | 상태에만 의존 | 상태 + 입력 |
-| 타이밍 | 1사이클 지연 | 즉시 반응 |
-| 글리치 | 없음 | 입력 변화 시 발생 가능 |
-| 상태 수 | 더 많음 | 더 적음 |
+| Output | Depends only on state | Depends on state + input |
+| Timing | 1-cycle delay | Immediate response |
+| Glitches | None | Possible on input changes |
+| State count | More states | Fewer states |
 
-## FSM + Datapath 통합
+## FSM + Datapath Integration
 
-타이머나 카운터와 FSM을 결합하는 패턴:
+Pattern for combining FSMs with timers or counters:
 
 ```scala
 class Flasher extends Module {
@@ -116,15 +116,15 @@ class Flasher extends Module {
 
   val stateReg = RegInit(off)
 
-  // 타이머 (datapath)
+  // Timer (datapath)
   val timerReg = RegInit(0.U(16.W))
   val timerDone = timerReg === 0.U
 
-  // FSM → Datapath: 제어 신호
+  // FSM -> Datapath: control signals
   val timerLoad = WireDefault(false.B)
   val timerSelect = WireDefault(0.U(1.W))
 
-  // 타이머 로직
+  // Timer logic
   val timerVal = Mux(timerSelect === 0.U, 999.U, 499.U)
   when(timerLoad) {
     timerReg := timerVal
@@ -132,10 +132,10 @@ class Flasher extends Module {
     timerReg := timerReg - 1.U
   }
 
-  // 출력 기본값
+  // Default output
   io.light := false.B
 
-  // FSM 로직
+  // FSM logic
   switch(stateReg) {
     is(off) {
       when(io.start) {
@@ -151,14 +151,14 @@ class Flasher extends Module {
         timerSelect := 1.U
       }
     }
-    // ... 나머지 상태들
+    // ... remaining states
   }
 }
 ```
 
-## 카운터 기반 상태 축소
+## Counter-Based State Reduction
 
-상태가 반복 패턴일 때 카운터로 상태 수를 줄이는 패턴:
+Pattern for reducing state count with a counter when states follow a repetitive pattern:
 
 ```scala
 object State extends ChiselEnum {
@@ -191,10 +191,10 @@ switch(stateReg) {
 }
 ```
 
-## 통신 FSM — FSM 간 연결
+## Communicating FSMs — Connecting FSMs Together
 
 ```scala
-// Timer FSM (재사용 가능한 타이머)
+// Timer FSM (reusable timer)
 class TimerFsm(maxCount: Int) extends Module {
   val io = IO(new Bundle {
     val start = Input(Bool())
@@ -211,14 +211,14 @@ class TimerFsm(maxCount: Int) extends Module {
   }
 }
 
-// Main FSM — TimerFsm을 사용
+// Main FSM — uses TimerFsm
 class MainController extends Module {
   val timer = Module(new TimerFsm(1000))
 
-  // FSM → Timer: 제어 신호
+  // FSM -> Timer: control signal
   timer.io.start := false.B
 
-  // Timer → FSM: 상태 신호
+  // Timer -> FSM: status signal
   when(timer.io.done) {
     stateReg := nextState
   }
@@ -227,14 +227,14 @@ class MainController extends Module {
 
 ## Gotchas
 
-| 함정 | 설명 |
-|------|------|
-| **ChiselEnum 위치** | Module 클래스 내부 또는 companion object 내에 정의. 패키지 레벨 정의 시 문제 발생 가능 |
-| **`import State._` 누락** | enum 정의 후 반드시 `import State._` 해야 상태명 직접 사용 가능 |
-| **기본 출력값 누락** | Mealy 출력은 `switch` 전에 기본값 설정 필수. 미설정 시 "not fully initialized" 에러 또는 래치 생성 |
-| **Mealy 글리치** | Mealy 출력은 조합 경로 — 입력 글리치가 출력으로 전파. 비동기 컨텍스트에서 주의 |
-| **switch에 otherwise 없음** | `switch/is`는 `otherwise` 지원 안함 — 매치되지 않는 상태는 현재 값 유지 (레지스터) |
-| **when vs switch** | `switch`는 `ChiselEnum`/`UInt` 매칭용. 상태 내 조건 분기는 `when` 사용 |
-| **상태 인코딩** | ChiselEnum은 기본 이진 인코딩. one-hot 필요 시 별도 처리 |
-| **타이머 off-by-one** | `timerReg === 0.U`로 done 검출 시, 로드 값이 N이면 N+1 사이클 후 done |
-| **WireDefault 제어 신호** | FSM 제어 출력은 `WireDefault(false.B)`로 선언 — switch 내에서 필요할 때만 `true.B` 할당 |
+| Pitfall | Description |
+|---------|-------------|
+| **ChiselEnum placement** | Define inside the Module class or its companion object. Package-level definitions may cause issues |
+| **Missing `import State._`** | You must `import State._` after the enum definition to use state names directly |
+| **Missing default output value** | Mealy outputs require a default value before the `switch` block. Otherwise you get a "not fully initialized" error or latch inference |
+| **Mealy glitches** | Mealy outputs are on combinational paths -- input glitches propagate to outputs. Use caution in asynchronous contexts |
+| **No otherwise in switch** | `switch/is` does not support `otherwise` -- unmatched states retain their current value (register) |
+| **when vs switch** | `switch` is for matching `ChiselEnum`/`UInt`. Use `when` for conditional branching within a state |
+| **State encoding** | ChiselEnum uses binary encoding by default. One-hot encoding requires separate handling |
+| **Timer off-by-one** | When detecting done with `timerReg === 0.U`, a load value of N means done fires after N+1 cycles |
+| **WireDefault for control signals** | Declare FSM control outputs with `WireDefault(false.B)` -- only assign `true.B` inside the switch when needed |

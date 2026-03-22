@@ -1,23 +1,23 @@
 # Chisel Type Reference
 
-## 연산자 테이블
+## Operator Tables
 
-### 비트 연산 (UInt, SInt, Bool)
-| 연산 | 구문 | 설명 |
-|------|------|------|
+### Bitwise Operations (UInt, SInt, Bool)
+| Operation | Syntax | Description |
+|-----------|--------|-------------|
 | AND | `a & b` | bitwise AND |
 | OR | `a \| b` | bitwise OR |
 | XOR | `a ^ b` | bitwise XOR |
 | NOT | `~a` | bitwise negation |
-| Shift Left | `a << n` | n비트 왼쪽 시프트 |
-| Shift Right | `a >> n` | n비트 오른쪽 시프트 |
-| Bit Extract | `a(n)` | n번째 비트 |
-| Range Extract | `a(hi, lo)` | hi:lo 범위 추출 |
-| Concatenate | `a ## b` | 비트 연결 (a가 상위) |
+| Shift Left | `a << n` | Shift left by n bits |
+| Shift Right | `a >> n` | Shift right by n bits |
+| Bit Extract | `a(n)` | Extract the n-th bit |
+| Range Extract | `a(hi, lo)` | Extract bits in hi:lo range |
+| Concatenate | `a ## b` | Bit concatenation (a is upper) |
 
-### 산술 연산 (UInt, SInt)
-| 연산 | 구문 | 결과 폭 |
-|------|------|---------|
+### Arithmetic Operations (UInt, SInt)
+| Operation | Syntax | Result Width |
+|-----------|--------|-------------|
 | Add | `a + b` | max(w(a), w(b)) |
 | Sub | `a - b` | max(w(a), w(b)) |
 | Mul | `a * b` | w(a) + w(b) |
@@ -25,9 +25,9 @@
 | Mod | `a % b` | min(w(a), w(b)) |
 | Negate | `-a` | w(a) |
 
-### 비교 연산
-| 연산 | 구문 | 반환 |
-|------|------|------|
+### Comparison Operations
+| Operation | Syntax | Returns |
+|-----------|--------|---------|
 | Equal | `a === b` | Bool |
 | Not Equal | `a =/= b` | Bool |
 | Greater | `a > b` | Bool |
@@ -35,17 +35,17 @@
 | Less | `a < b` | Bool |
 | Less Equal | `a <= b` | Bool |
 
-### Bool 전용
-| 연산 | 구문 |
-|------|------|
+### Bool-Specific
+| Operation | Syntax |
+|-----------|--------|
 | AND | `a && b` |
 | OR | `a \|\| b` |
 | NOT | `!a` |
 
-## 타입 변환 치트시트
+## Type Conversion Cheat Sheet
 
-| From | To | 방법 |
-|------|----|------|
+| From | To | Method |
+|------|----|--------|
 | `SInt` | `UInt` | `.asUInt` |
 | `UInt` | `SInt` | `.asSInt` |
 | `UInt(1.W)` | `Bool` | `.asBool` |
@@ -55,15 +55,15 @@
 | `UInt` | `Bundle` | `.asTypeOf(new MyBundle())` |
 | `Bundle` | `UInt` | `.asUInt` |
 
-## 폭 추론 규칙
+## Width Inference Rules
 
-- 연산 결과 폭은 자동 추론됨 (위 산술 연산 테이블 참조)
-- `Wire(UInt())` — 폭 미지정 시 연결된 신호에서 추론
-- `RegInit(0.U)` — **1비트로 추론됨** (주의!)
-- 상수: `0.U` → 1비트, `255.U` → 8비트 (최소 필요 폭)
-- 명시적 폭 지정이 항상 안전: `0.U(32.W)`
+- Operation result widths are automatically inferred (see arithmetic operations table above)
+- `Wire(UInt())` — when width is unspecified, it is inferred from the connected signal
+- `RegInit(0.U)` — **inferred as 1-bit** (caution!)
+- Constants: `0.U` -> 1-bit, `255.U` -> 8-bit (minimum required width)
+- Explicit width specification is always safe: `0.U(32.W)`
 
-## Mux 변형
+## Mux Variants
 
 ```scala
 Mux(cond, thenVal, elseVal)           // 2-way mux
