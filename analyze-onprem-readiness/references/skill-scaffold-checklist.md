@@ -12,6 +12,11 @@ Generate a reusable skill only when all of the following are true:
   - `skills/<name>/references/guide.md`
   - optional sample config files under `references/`
 
+Additional checks for specific project types:
+
+- For LLM serving projects: model offline mode settings (e.g. `HF_HUB_OFFLINE`) are included in config keys
+- Proxy and certificate settings (`HTTP_PROXY`, `HTTPS_PROXY`, `REQUESTS_CA_BUNDLE`, etc.) are reflected in the config draft when the project makes outbound HTTP calls
+
 Before generating the new skill:
 
 - confirm the intended skill name

@@ -47,16 +47,18 @@ Use [`references/report-template.md`](references/report-template.md) as the outp
    - or analysis plus config draft plus skill scaffold generation
 2. Read only the minimum necessary docs and config samples.
 3. Inspect code paths related to telemetry, analytics, crash reporting, auto-update, user tracking, or other outbound behavior when the reviewed docs are not sufficient.
-4. Separate verified facts from inference.
-5. Produce the analysis report using the repository template.
-6. Draft local configuration changes only where the evidence supports them.
-7. Produce a problem report for blocked outbound, telemetry, or user-data collection behavior.
-8. Add code modification guidance only when:
-   - a setting or documented toggle is not enough
-   - and the blocked behavior causes functional issues, delay, retries, noisy errors, or unavoidable data collection attempts
-9. Leave unknown values as placeholders and call them out explicitly.
-10. Stop after the report, config draft, and any required remediation guidance unless the user explicitly requests a reusable skill.
-11. If the user does request a reusable skill, follow the scaffold checklist and keep copied source material under `references/`.
+4. For LLM model serving projects (vLLM, TGI, llama.cpp, etc.), check model weight download paths, offline mode settings, GPU/CUDA dependencies, and model cache directory configuration.
+5. Check HTTP client proxy support, internal CA certificate bundle injection paths, and package manager proxy/certificate settings.
+6. Separate verified facts from inference.
+7. Produce the analysis report using the repository template.
+8. Draft local configuration changes only where the evidence supports them.
+9. Produce a problem report for blocked outbound, telemetry, or user-data collection behavior.
+10. Add code modification guidance only when:
+    - a setting or documented toggle is not enough
+    - and the blocked behavior causes functional issues, delay, retries, noisy errors, or unavoidable data collection attempts
+11. Leave unknown values as placeholders and call them out explicitly.
+12. Stop after the report, config draft, and any required remediation guidance unless the user explicitly requests a reusable skill.
+13. If the user does request a reusable skill, follow the scaffold checklist and keep copied source material under `references/`.
 
 ## Output Targets
 

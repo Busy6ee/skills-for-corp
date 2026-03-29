@@ -17,6 +17,8 @@
 | Existing internal standards | Helps compare project behavior against team restrictions |
 | Whether source code is available for inspection | Needed when telemetry or tracking behavior must be confirmed in code |
 | Request to generate a reusable skill | Required before creating `skills/<name>/` output |
+| GPU/serving environment info | GPU specs, model storage path, serving backend — needed for LLM serving projects (vLLM, TGI, etc.) |
+| Proxy/certificate environment | Internal proxy address, CA certificate path, network constraints |
 | Preferred skill name | Needed only if reusable skill generation is requested |
 
 ## Defaults
