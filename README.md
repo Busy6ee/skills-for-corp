@@ -48,6 +48,32 @@ ln -s ~/skills-for-corp .claude/skills/corp
 |-------|-------------|
 | [analyze-onprem-readiness](analyze-onprem-readiness/SKILL.md) | 오픈소스 프로젝트의 온프레미스 배포 준비 상태 분석 |
 
+### Imported: [chisel-book](https://github.com/schoeberl/chisel-book) (BSD)
+
+| Skill | Description |
+|-------|-------------|
+| [chisel-basics](chisel-basics/SKILL.md) | Chisel 모듈/타입/IO 정의, 조합논리 패턴 |
+| [chisel-interface](chisel-interface/SKILL.md) | DecoupledIO, Flipped, bulk connection, 프로토콜 |
+| [chisel-testing](chisel-testing/SKILL.md) | ChiselTest 테스트벤치 패턴 |
+| [chisel-fsm](chisel-fsm/SKILL.md) | 유한 상태 머신 (Mealy/Moore, FSM+datapath) |
+| [chisel-memory](chisel-memory/SKILL.md) | SyncReadMem, 레지스터 파일, 포워딩 |
+| [chisel-generator](chisel-generator/SKILL.md) | 파라메트릭 하드웨어, 제네릭, 함수형 패턴 |
+| [chisel-components](chisel-components/SKILL.md) | FIFO, UART, 카운터, 디바운스 등 빌딩블록 |
+| [chisel-project](chisel-project/SKILL.md) | 프로젝트 셋업, build.sbt, Verilog 생성, BlackBox |
+
+### Imported: [XiangShan](https://github.com/OpenXiangShan/XiangShan) (Mulan PSL v2)
+
+| Skill | Description |
+|-------|-------------|
+| [xiangshan-architecture](xiangshan-architecture/SKILL.md) | 레포 구조, 모듈 계층, 신호 흐름 네비게이션 |
+| [xiangshan-parameters](xiangshan-parameters/SKILL.md) | XSCoreParameters 시스템, DSE 파라미터 |
+| [xiangshan-conventions](xiangshan-conventions/SKILL.md) | 네이밍, 파이프라인 패턴, Bundle/IO 관례 |
+| [xiangshan-build](xiangshan-build/SKILL.md) | Mill 빌드, Makefile 시뮬레이션, 환경 설정 |
+| [xiangshan-debug](xiangshan-debug/SKILL.md) | difftest, 성능 카운터, ChiselDB, 로그 분석 |
+| [xiangshan-frontend](xiangshan-frontend/SKILL.md) | BPU (TAGE/FTB), FTQ, IFU, ICache, IBuffer |
+| [xiangshan-backend](xiangshan-backend/SKILL.md) | Decode, Rename, Dispatch, IssueQueue, ROB |
+| [xiangshan-memory](xiangshan-memory/SKILL.md) | MemBlock, LSQ, DCache, MMU, 프리페처 |
+
 ### Imported: [superpowers](https://github.com/obra/superpowers) (MIT)
 
 | Skill | Description |
