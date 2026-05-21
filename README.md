@@ -47,6 +47,7 @@ ln -s ~/skills-for-corp .claude/skills/corp
 | Skill | Description |
 |-------|-------------|
 | [analyze-onprem-readiness](analyze-onprem-readiness/SKILL.md) | 오픈소스 프로젝트의 온프레미스 배포 준비 상태 분석 |
+| [vault-kroki-diagram](vault-kroki-diagram/SKILL.md) | 자체 호스팅 Kroki + Quartz 환경의 다이어그램 펜스 작성 가이드 (화이트리스트 30종 · 검증 사례 33건 · 6개 호환성 패치 M-01~M-06 · 도구 선택 매트릭스 포함, 자기완결형) |
 
 ### Imported: [chisel-book](https://github.com/schoeberl/chisel-book) (BSD)
 
